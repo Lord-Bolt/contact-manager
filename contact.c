@@ -5,10 +5,14 @@
  * AUTHOR: Vedhashiva M T
  ******************************************************************************/
 
+int next_contact_id = 1;
+
 #include "contact.h"
+#include "input.h" 
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>  
 
 // ============================================================================
 // CONTACT CREATION
@@ -16,12 +20,41 @@
 
 bool contact_create(Contact *contact, const char *name, const char *phone, const char *email)
 {
-    
+    if (contact == NULL || name == NULL || phone == NULL || email == NULL)
+    {
+        return false;
+    }
+
+    if (contact_validate_name(name) && contact_validate_email(email) && contact_validate_phone(phone))
+    {
+
+        strncpy(contact->name, name, MAX_NAME_LEN - 1);
+        contact->name[MAX_NAME_LEN - 1] = '\0';
+
+        strncpy(contact->email, email, MAX_EMAIL_LEN - 1);
+        contact->email[MAX_EMAIL_LEN - 1] = '\0';
+
+        strncpy(contact->phone, phone, MAX_PHONE_LEN - 1);
+        contact->phone[MAX_PHONE_LEN - 1] = '\0';
+
+        contact->id = next_contact_id;
+        next_contact_id++;
+        return true;
+    }
+    return false;
 }
 
 bool contact_is_valid(const Contact *contact)
 {
+    if (contact == NULL)
+    {
+        return false; // Always NuLL check
+    }
 
+    if (contact_validate_email(contact->email) && contact_validate_name(contact->name) && contact_validate_phone(contact->phone))
+    {
+        return true;
+    }
     return false;
 }
 
@@ -33,14 +66,35 @@ void contact_print(const Contact *contact)
 {
     // TODO: Print contact in nice format
     // Example: "ID: 1 | Name: John Doe | Phone: 555-1234 | Email: john@email.com"
-    printf("TODO: Implement contact_print\n");
+    printf("\n| %-4d | %-20s | %-15s | %-30s |",
+           contact->id,     // Left-aligned, 4 chars wide
+           contact->name,   // Left-aligned, 20 chars wide
+           contact->phone,  // Left-aligned, 15 chars wide
+           contact->email); // Left-aligned, 30 chars wide
+    printf("\n|------|----------------------|-----------------|--------------------------------|");
 }
 
 void contact_print_header(void)
 {
-    // TODO: Print column headers
-    printf("ID  Name                 Phone           Email\n");
-    printf("--- -------------------- --------------- --------------------\n");
+    printf("\n|------|----------------------|-----------------|--------------------------------|");
+    printf("\n|  ID  |        Name          |     Phone      |            Email              |");
+    printf("\n|------|----------------------|-----------------|--------------------------------|");
+}
+
+void contact_print_all(const Contact contacts[], int count)
+{
+    if (count == 0)
+    {
+        printf("No contacts found.\n");
+        return;
+    }
+
+    contact_print_header();
+    for (int i = 0; i < count; i++)
+    {
+        contact_print(&contacts[i]);
+    }
+    printf("\n"); // Final newline
 }
 
 // ============================================================================
@@ -51,7 +105,7 @@ bool contact_compare_name(const Contact *a, const Contact *b)
 {
     // TODO: Compare by name (alphabetical)
     // Use strcmp()
-    return false;
+    return strcmp(a->name, b->name) < 0;
 }
 
 bool contact_compare_id(const Contact *a, const Contact *b)
@@ -147,8 +201,9 @@ bool contact_validate_phone(const char *phone)
             else
             {
                 parenthesis_count--;
-                if (c == ')' && phone[i + 1] != ' ')
+                if (c == ')' && phone[i + 1] != '\0' && phone[i + 1] != ' ' && phone[i + 1] != '-' && !isdigit(phone[i + 1]))
                 {
+                    // Only reject if next character is invalid
                     return false;
                 }
             }
@@ -160,14 +215,17 @@ bool contact_validate_phone(const char *phone)
         }
 
         else if (c == '-' || c == ' ' || c == '.')
+        {
             if (i == 0 || phone[i + 1] == '\0')
             { // Can't start or end with separator
                 return false;
             }
-        // no two separators in a row
-        if (phone[i + 1] == '-' || phone[i + 1] == ' ' || phone[i + 1] == '.')
-        {
-            return false;
+
+            // no two separators in a row
+            if (phone[i + 1] == '-' || phone[i + 1] == ' ' || phone[i + 1] == '.')
+            {
+                return false;
+            }
         }
     }
 

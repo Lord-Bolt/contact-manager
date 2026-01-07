@@ -16,8 +16,15 @@
 
 #define MAX_NAME_LEN 50
 #define MAX_PHONE_LEN 15
-#define MAX_EMAIL_LEN 50
+#define MAX_EMAIL_LEN 254
 #define MAX_CONTACTS 100
+
+// ============================================================================
+// GLOBAL (for persistent ID)
+// ============================================================================
+
+extern int next_contact_id;  // Defined in contact.c
+
 
 // ============================================================================
 // STRUCTURE
@@ -42,6 +49,7 @@ bool contact_is_valid(const Contact *contact);
 // Display
 void contact_print(const Contact *contact);
 void contact_print_header(void);
+void contact_print_all(const Contact contacts[], int count);
 
 // Comparison (for sorting/searching)
 bool contact_compare_name(const Contact *a, const Contact *b);
