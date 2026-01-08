@@ -366,25 +366,6 @@ int contact_find_by_email(const Contact contacts[], int count, const char *email
 }
 
 // ============================================================================
-// DISPLAY HELPERS
-// ============================================================================
-
-void contact_display_search_results(const Contact contacts[], const int indices[], int count)
-{
-    // TODO: If count == 0, print "No matches found"
-    // TODO: If count == 1, display single contact
-    // TODO: If count > 1, display all matches with numbering
-    // TODO: Use contact_display_single for each contact
-}
-
-void contact_display_single(const Contact *contact)
-{
-    // TODO: Display ONE contact in detailed format
-    // TODO: Show all fields (ID, Name, Phone, Email)
-    // TODO: Maybe add separator lines for readability
-}
-
-// ============================================================================
 // MATCHING FUNCTIONS  ------- ALL DONE!
 // ============================================================================
 
