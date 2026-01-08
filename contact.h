@@ -9,6 +9,8 @@
 #define CONTACT_H
 
 #include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
 
 // ============================================================================
 // CONSTANTS
@@ -23,8 +25,7 @@
 // GLOBAL (for persistent ID)
 // ============================================================================
 
-extern int next_contact_id;  // Defined in contact.c
-
+extern int next_contact_id; // Defined in contact.c
 
 // ============================================================================
 // STRUCTURE
@@ -52,8 +53,8 @@ void contact_print_header(void);
 void contact_print_all(const Contact contacts[], int count);
 
 // Comparison (for sorting/searching)
-bool contact_compare_name(const Contact *a, const Contact *b);
-bool contact_compare_id(const Contact *a, const Contact *b);
+int contact_compare_id(const void *a, const void *b);
+int contact_compare_name(const void *a, const void *b);
 
 // Field validation
 bool contact_validate_name(const char *name);

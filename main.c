@@ -12,7 +12,7 @@
 #include <stdbool.h>
 
 // ============================================================================
-// GLOBAL DATA (simple approach for now)
+// GLOBAL DATA
 // ============================================================================
 
 Contact contacts[MAX_CONTACTS];
@@ -203,6 +203,10 @@ void add_contact(void)
 
 void list_contacts(void)
 {
+    int choice;
+    Contact temp_contacts[MAX_CONTACTS];
+    memcpy(temp_contacts, contacts, sizeof(Contact) * contact_count); // Make Temp Array To Store Contacts
+
     printf("\n=== ALL CONTACTS (%d) ===\n", contact_count);
 
     if (contact_count == 0)
@@ -214,11 +218,35 @@ void list_contacts(void)
         // TODO: Optional - Add sorting choice
         // printf("Sort by: 1) ID 2) Name\n");
         // Get choice, sort array (temporarily) if needed
+        if (contact_count > 1)
+        {
+            printf("1. ID (ascending)\n");
+            printf("2. Name (alphabetical)\n");
+            printf("3. No sorting (default)\n");
 
-        contact_print_all(contacts, contact_count);
-        printf("\nTotal: %d contact(s)\n", contact_count);
+            if (!get_int_range_prompt("Enter choice : ", 1, 3, &choice))
+            {
+                printf("Invalid Input Has Been Entered. Printing In Default Mode.\n");
+                choice = 3;
+            }
+            if (choice == 1)
+            { // Sort by ID
+                qsort(temp_contacts, contact_count, sizeof(Contact), contact_compare_id);
+                printf("<Sorted by ID>\n");
+            }
+            else if (choice == 2)
+            { // Sort by Name
+                qsort(temp_contacts, contact_count, sizeof(Contact), contact_compare_name);
+                printf("<Sorted by Name>\n");
+            }
+            else
+            { // No sorting
+                printf("<No Sort>\n");
+            }
+        }
     }
-
+    contact_print_all(temp_contacts, contact_count);
+    printf("\nTotal: %d contact(s)\n", contact_count);
     pause_program("\nPress Enter to return to menu...");
     return;
 }

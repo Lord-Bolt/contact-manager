@@ -8,11 +8,11 @@
 int next_contact_id = 1;
 
 #include "contact.h"
-#include "input.h" 
+#include "input.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>  
+#include <stdlib.h>
 
 // ============================================================================
 // CONTACT CREATION
@@ -101,17 +101,18 @@ void contact_print_all(const Contact contacts[], int count)
 // COMPARISON FUNCTIONS
 // ============================================================================
 
-bool contact_compare_name(const Contact *a, const Contact *b)
+int contact_compare_id(const void *a, const void *b)
 {
-    // TODO: Compare by name (alphabetical)
-    // Use strcmp()
-    return strcmp(a->name, b->name) < 0;
+    const Contact *contact_a = (const Contact *)a;
+    const Contact *contact_b = (const Contact *)b;
+    return contact_a->id - contact_b->id; // Ascending ID
 }
 
-bool contact_compare_id(const Contact *a, const Contact *b)
+int contact_compare_name(const void *a, const void *b)
 {
-    // TODO: Compare by ID
-    return a->id < b->id;
+    const Contact *contact_a = (const Contact *)a;
+    const Contact *contact_b = (const Contact *)b;
+    return strcmp(contact_a->name, contact_b->name); // Alphabetical
 }
 
 // ============================================================================
