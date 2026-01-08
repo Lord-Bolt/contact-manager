@@ -1,8 +1,8 @@
 /******************************************************************************
  * FILE: contact.c
  * DESCRIPTION: Contact management implementation
- * TODO: Implement all functions!
  * AUTHOR: Vedhashiva M T
+ * VERSION: 1.0.1
  ******************************************************************************/
 
 // Version 1.0.0
@@ -307,10 +307,9 @@ bool contact_validate_email(const char *email)
 
 // Version 1.0.1
 // ============================================================================
-// SEARCH HELPER FUNCTIONS -
+// SEARCH HELPER FUNCTIONS - DONE
 // ============================================================================
 
-// DONE
 int contact_find_by_id(const Contact contacts[], int count, int id)
 {
     // TODO: Loop through contacts
@@ -321,8 +320,8 @@ int contact_find_by_id(const Contact contacts[], int count, int id)
     {
         return -1;
     }
-    
-    for (int i; i < count; i++)
+
+    for (int i = 0; i < count; i++)
     {
         if (contacts[i].id == id)
         {
@@ -503,7 +502,13 @@ bool contact_remove_by_index(Contact contacts[], int *count, int index)
     // TODO: Call contact_shift_left to remove the contact
     // TODO: Decrement *count
     // TODO: Return true on success
-    return false;
+    if (contacts == NULL || count == NULL || *count < 0 || index < 0 || index >= *count)
+    {
+        return false;
+    }
+
+    contact_shift_left(contacts, count, index);
+    return true;
 }
 
 void contact_shift_left(Contact contacts[], int *count, int start_index)
@@ -511,6 +516,16 @@ void contact_shift_left(Contact contacts[], int *count, int start_index)
     // TODO: Shift all contacts left starting from start_index
     // TODO: Loop: contacts[i] = contacts[i+1] for i = start_index to *count-2
     // TODO: This "removes" the contact at start_index by overwriting it
+    if (contacts == NULL || count == NULL || *count <= 0 || start_index < 0 || start_index >= *count)
+    {
+        return;
+    }
+
+    for (int i = start_index; i < *count - 1; i++)
+    {
+        contacts[i] = contacts[i + 1];
+    }
+    (*count)--;
 }
 
 void extract_digits(char *dst, const char *src)

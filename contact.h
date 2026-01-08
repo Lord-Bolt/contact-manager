@@ -10,8 +10,6 @@
 #define CONTACT_H
 
 #include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
 
 // ============================================================================
 // CONSTANTS
