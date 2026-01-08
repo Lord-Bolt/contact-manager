@@ -73,7 +73,6 @@ int contact_find_by_phone(const Contact contacts[], int count,
 int contact_find_by_email(const Contact contacts[], int count,
                           const char *email, int results[]);
 
-void contact_normalize_phone(char *phone);
 bool contact_name_matches(const Contact *contact, const char *search_term);
 bool contact_phone_matches(const Contact *contact, const char *search_term);
 bool contact_email_matches(const Contact *contact, const char *search_term);

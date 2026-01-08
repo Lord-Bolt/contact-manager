@@ -444,13 +444,6 @@ bool contact_email_matches(const Contact *contact, const char *search_term)
 // UTILITY FUNCTIONS
 // ============================================================================
 
-void contact_normalize_phone(char *phone)
-{
-    // TODO: Remove all non-digit characters: (, ), -, spaces, +
-    // TODO: Example: "(555) 123-4567" → "5551234567"
-    // TODO: Useful for consistent phone comparison
-}
-
 bool contact_remove_by_index(Contact contacts[], int *count, int index)
 {
     // TODO: Validate index is within 0 <= index < *count
