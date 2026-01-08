@@ -5,6 +5,7 @@
  * AUTHOR: Vedhashiva M T
  ******************************************************************************/
 
+// Version 1.0.0
 #ifndef CONTACT_H
 #define CONTACT_H
 
@@ -60,5 +61,29 @@ int contact_compare_name(const void *a, const void *b);
 bool contact_validate_name(const char *name);
 bool contact_validate_phone(const char *phone);
 bool contact_validate_email(const char *email);
+
+// Version 1.0.1
+// SEARCH & HELPER FUNCTIONS
+
+int contact_find_by_id(const Contact contacts[], int count, int id);
+int contact_find_by_name(const Contact contacts[], int count,
+                         const char *name, int results[]);
+int contact_find_by_phone(const Contact contacts[], int count,
+                          const char *phone, int results[]);
+int contact_find_by_email(const Contact contacts[], int count,
+                          const char *email, int results[]);
+
+void contact_display_search_results(const Contact contacts[],
+                                    const int indices[], int count);
+void contact_display_single(const Contact *contact);
+
+void contact_normalize_phone(char *phone);
+bool contact_name_matches(const Contact *contact, const char *search_term);
+bool contact_phone_matches(const Contact *contact, const char *search_term);
+bool contact_email_matches(const Contact *contact, const char *search_term);
+
+bool contact_remove_by_index(Contact contacts[], int *count, int index);
+void contact_shift_left(Contact contacts[], int *count, int start_index);
+void extract_digits(char *dst, const char *src);
 
 #endif // CONTACT_H

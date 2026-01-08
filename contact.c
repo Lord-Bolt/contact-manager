@@ -5,6 +5,7 @@
  * AUTHOR: Vedhashiva M T
  ******************************************************************************/
 
+// Version 1.0.0
 int next_contact_id = 1;
 
 #include "contact.h"
@@ -302,4 +303,199 @@ bool contact_validate_email(const char *email)
     }
 
     return true;
+}
+
+// Version 1.0.1
+// ============================================================================
+// SEARCH HELPER FUNCTIONS
+// ============================================================================
+
+// DONE
+int contact_find_by_id(const Contact contacts[], int count, int id)
+{
+    // TODO: Loop through contacts
+    // TODO: Compare each contact's id with parameter id
+    // TODO: Return index if found
+    // TODO: Return -1 if not found
+    if (contacts == NULL || count < 1)
+    {
+        return -1;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        if (contacts[i].id == id)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int contact_find_by_name(const Contact contacts[], int count, const char *name, int results[])
+{
+    // TODO: Initialize found_count = 0
+    // TODO: Loop through all contacts
+    // TODO: For each contact, check if name matches (use contact_name_matches)
+    // TODO: If matches, store index in results[found_name_count] and increment
+    // TODO: Return found_count
+    int found_name_count = 0;
+
+
+    return found_name_count;
+}
+
+int contact_find_by_phone(const Contact contacts[], int count, const char *phone, int results[])
+{
+    // TODO: Similar to find_by_name but for phone
+    // TODO: Consider normalizing phone numbers first
+    // TODO: Use contact_phone_matches for comparison
+    int found_phone_count;
+
+
+
+    return found_phone_count;
+}
+
+int contact_find_by_email(const Contact contacts[], int count, const char *email, int results[])
+{
+    // TODO: Similar to find_by_name but for email
+    // TODO: Use contact_email_matches for comparison
+    return 0;
+}
+
+// ============================================================================
+// DISPLAY HELPERS
+// ============================================================================
+
+void contact_display_search_results(const Contact contacts[], const int indices[], int count)
+{
+    // TODO: If count == 0, print "No matches found"
+    // TODO: If count == 1, display single contact
+    // TODO: If count > 1, display all matches with numbering
+    // TODO: Use contact_display_single for each contact
+}
+
+void contact_display_single(const Contact *contact)
+{
+    // TODO: Display ONE contact in detailed format
+    // TODO: Show all fields (ID, Name, Phone, Email)
+    // TODO: Maybe add separator lines for readability
+}
+
+// ============================================================================
+// MATCHING FUNCTIONS  ------- ALL DONE!
+// ============================================================================
+
+bool contact_name_matches(const Contact *contact, const char *search_term)
+{
+    // TODO: Case-insensitive partial match
+    // TODO: Use strstr() with tolower()
+    // TODO: Return true if search_term is found in contact->name
+    if (search_term[0] == '\0')
+    {
+        return false;
+    }
+
+    const char *name = contact->name;
+    const char *search = search_term;
+
+    // Basically strcasestr
+    for (int i = 0; name[i]; i++)
+    {
+        int j = 0;
+        while (name[i + j] && search[j] && tolower(name[i + j]) == tolower(search[j]))
+        { // i+j Might look weird but it's to find chars when they're in the middle of a name
+            j++;
+        }
+
+        if (!search[j])
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool contact_phone_matches(const Contact *c, const char *search)
+{
+    char norm_phone[20], norm_search[20]; // MAX_PHONE_LEN is only 15, taking 20 just to be safe
+    extract_digits(norm_phone, c->phone);
+    extract_digits(norm_search, search); // using extract_digits
+    return strstr(norm_phone, norm_search) != NULL;
+}
+
+bool contact_email_matches(const Contact *contact, const char *search_term)
+{
+    // TODO: Case-insensitive email matching
+    // TODO: strcasestr() or similar
+    // TODO: Return true if search_term found in contact->email
+
+    if (search_term[0] == '\0')
+    {
+        return false;
+    }
+
+    const char *email = contact->email;
+    const char *search = search_term;
+
+    // Basically strcasestr
+    for (int i = 0; email[i]; i++)
+    {
+        int j = 0;
+        while (email[i + j] && search[j] && tolower(email[i + j]) == tolower(search[j]))
+        { // i+j Might look weird but it's to find chars when they're in the middle of a name
+            j++;
+        }
+
+        if (!search[j])
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+void contact_normalize_phone(char *phone)
+{
+    // TODO: Remove all non-digit characters: (, ), -, spaces, +
+    // TODO: Example: "(555) 123-4567" → "5551234567"
+    // TODO: Useful for consistent phone comparison
+}
+
+bool contact_remove_by_index(Contact contacts[], int *count, int index)
+{
+    // TODO: Validate index is within 0 <= index < *count
+    // TODO: If invalid, return false
+    // TODO: Call contact_shift_left to remove the contact
+    // TODO: Decrement *count
+    // TODO: Return true on success
+    return false;
+}
+
+void contact_shift_left(Contact contacts[], int *count, int start_index)
+{
+    // TODO: Shift all contacts left starting from start_index
+    // TODO: Loop: contacts[i] = contacts[i+1] for i = start_index to *count-2
+    // TODO: This "removes" the contact at start_index by overwriting it
+}
+
+void extract_digits(char *dst, const char *src)
+{
+    int d = 0;
+    for (int i = 0; src[i] && d < 19; i++)
+    { // 19 for 20-char buffer
+        if (isdigit((unsigned char)src[i]))
+        {
+            dst[d++] = src[i];
+        }
+    }
+    dst[d] = '\0';
 }
