@@ -16,7 +16,7 @@ int next_contact_id = 1;
 #include <stdlib.h>
 
 // ============================================================================
-// CONTACT CREATION
+// CONTACT CREATION - DONE
 // ============================================================================
 
 bool contact_create(Contact *contact, const char *name, const char *phone, const char *email)
@@ -60,7 +60,7 @@ bool contact_is_valid(const Contact *contact)
 }
 
 // ============================================================================
-// DISPLAY FUNCTIONS
+// DISPLAY FUNCTIONS - DONE
 // ============================================================================
 
 void contact_print(const Contact *contact)
@@ -99,7 +99,7 @@ void contact_print_all(const Contact contacts[], int count)
 }
 
 // ============================================================================
-// COMPARISON FUNCTIONS
+// COMPARISON FUNCTIONS - DONE
 // ============================================================================
 
 int contact_compare_id(const void *a, const void *b)
@@ -117,7 +117,7 @@ int contact_compare_name(const void *a, const void *b)
 }
 
 // ============================================================================
-// VALIDATION FUNCTIONS
+// VALIDATION FUNCTIONS - DONE
 // ============================================================================
 
 bool contact_validate_name(const char *name)
@@ -307,7 +307,7 @@ bool contact_validate_email(const char *email)
 
 // Version 1.0.1
 // ============================================================================
-// SEARCH HELPER FUNCTIONS
+// SEARCH HELPER FUNCTIONS -
 // ============================================================================
 
 // DONE
@@ -321,8 +321,8 @@ int contact_find_by_id(const Contact contacts[], int count, int id)
     {
         return -1;
     }
-
-    for (int i = 0; i < count; i++)
+    
+    for (int i; i < count; i++)
     {
         if (contacts[i].id == id)
         {
@@ -335,13 +335,30 @@ int contact_find_by_id(const Contact contacts[], int count, int id)
 
 int contact_find_by_name(const Contact contacts[], int count, const char *name, int results[])
 {
-    // TODO: Initialize found_count = 0
+    // TODO: Initialize found_name_count = 0
     // TODO: Loop through all contacts
     // TODO: For each contact, check if name matches (use contact_name_matches)
     // TODO: If matches, store index in results[found_name_count] and increment
     // TODO: Return found_count
     int found_name_count = 0;
 
+    if (name == NULL || contacts == NULL || results == NULL)
+    {
+        return -1;
+    }
+
+    if (name[0] == '\0') // Must come after NULL check
+    {
+        return 0;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        if (contact_name_matches(&contacts[i], name))
+        {
+            results[found_name_count++] = i;
+        }
+    }
 
     return found_name_count;
 }
@@ -350,10 +367,25 @@ int contact_find_by_phone(const Contact contacts[], int count, const char *phone
 {
     // TODO: Similar to find_by_name but for phone
     // TODO: Consider normalizing phone numbers first
-    // TODO: Use contact_phone_matches for comparison
-    int found_phone_count;
+    // TODO: Use found_phone_count for comparison
+    int found_phone_count = 0;
 
+    if (phone == NULL || contacts == NULL || results == NULL)
+    {
+        return -1;
+    }
 
+    if (phone[0] == '\0')
+    {
+        return 0;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        if (contact_phone_matches(&contacts[i], phone))
+        {
+            results[found_phone_count++] = i;
+        }
+    }
 
     return found_phone_count;
 }
@@ -362,11 +394,31 @@ int contact_find_by_email(const Contact contacts[], int count, const char *email
 {
     // TODO: Similar to find_by_name but for email
     // TODO: Use contact_email_matches for comparison
-    return 0;
+    int found_email_count = 0;
+
+    if (email == NULL || contacts == NULL || results == NULL)
+    {
+        return -1;
+    }
+
+    if (email[0] == '\0')
+    {
+        return 0;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        if (contact_email_matches(&contacts[i], email))
+        {
+            results[found_email_count++] = i;
+        }
+    }
+
+    return found_email_count;
 }
 
 // ============================================================================
-// MATCHING FUNCTIONS  ------- ALL DONE!
+// MATCHING FUNCTIONS  - DONE
 // ============================================================================
 
 bool contact_name_matches(const Contact *contact, const char *search_term)
