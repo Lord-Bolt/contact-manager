@@ -47,8 +47,6 @@ void clear_screen(void);
 
 int main(void)
 {
-    printf("=== CONTACT MANAGER v1.0 ===\n");
-    printf("Built with your input.h library!\n");
 
     // TODO: Load contacts from file (optional)
     // load_contacts_from_file("contacts.dat");
