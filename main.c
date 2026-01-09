@@ -8,6 +8,7 @@
 #include "contact.h"
 #include "input.h"
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -254,9 +255,9 @@ void search_contacts(void)
 
     // show_search_menu(); // Removed as requested
     int choice;
-    int result; // Not single int for readability //
-    int found_indices[MAX_CONTACTS];  // CHANGED: renamed from found_count
-    int found_index; // Learnt the hard way that total number != index
+    int result;                      // Not single int for readability //
+    int found_indices[MAX_CONTACTS]; // CHANGED: renamed from found_count
+    int found_index;                 // Learnt the hard way that total number != index
 
     // FIXED: Clearer prompt without show_search_menu()
     if (!get_int_range_prompt("\n1 - Search By ID\n2 - Search By Name\n3 - Search By Phone\n4 - Search By E-mail\n5 - Quit\nEnter Choice: ", 1, 5, &choice))
@@ -285,8 +286,8 @@ void search_contacts(void)
             break;
         }
 
-        printf("Found 1 Contact(s)\n");  // FIXED: Added newline
-        printf("Contact with ID : \'%d\':\n", id);  // FIXED: Added newline
+        printf("Found 1 Contact(s)\n");            // FIXED: Added newline
+        printf("Contact with ID : \'%d\':\n", id); // FIXED: Added newline
         contact_print(&contacts[found_index]);
         break;
     }
@@ -301,22 +302,22 @@ void search_contacts(void)
             return;
         }
 
-        result = contact_find_by_name(contacts, contact_count, name, found_indices);  // CHANGED: found_count → found_indices
-        
+        result = contact_find_by_name(contacts, contact_count, name, found_indices); // CHANGED: found_count → found_indices
+
         // FIXED: Check for 0 results, not -1 (unless -1 means error in your implementation)
-        if (result == 0)  // CHANGED: result == 0 means "found nothing"
+        if (result == 0) // CHANGED: result == 0 means "found nothing"
         {
             printf("No such Contact with Name : %s exists within the directory.\n", name);
             break;
         }
-        else if (result == -1)  // -1 means ERROR (not just "not found")
+        else if (result == -1) // -1 means ERROR (not just "not found")
         {
             printf("Search error occurred.\n");
             break;
         }
 
-        printf("Found %d Contact(s)\n", result);  // FIXED: Added newline
-        printf("Contacts with Name : \'%s\':\n", name);  // FIXED: Added newline
+        printf("Found %d Contact(s)\n", result);        // FIXED: Added newline
+        printf("Contacts with Name : \'%s\':\n", name); // FIXED: Added newline
         for (int i = 0; i < result; i++)
         {
             contact_print(&contacts[found_indices[i]]); // CHANGED: found_count → found_indices
@@ -334,8 +335,8 @@ void search_contacts(void)
             return;
         }
 
-        result = contact_find_by_phone(contacts, contact_count, phone, found_indices);  // CHANGED: found_count → found_indices
-        
+        result = contact_find_by_phone(contacts, contact_count, phone, found_indices); // CHANGED: found_count → found_indices
+
         // FIXED: Same logic as name search
         if (result == 0)
         {
@@ -348,11 +349,11 @@ void search_contacts(void)
             break;
         }
 
-        printf("Found %d Contact(s)\n", result);  // FIXED: Added newline
-        printf("Contacts with Phone : \'%s\':\n", phone);  // FIXED: Added newline
+        printf("Found %d Contact(s)\n", result);          // FIXED: Added newline
+        printf("Contacts with Phone : \'%s\':\n", phone); // FIXED: Added newline
         for (int i = 0; i < result; i++)
         {
-            contact_print(&contacts[found_indices[i]]);  // CHANGED: found_count → found_indices
+            contact_print(&contacts[found_indices[i]]); // CHANGED: found_count → found_indices
         }
         break;
     }
@@ -362,13 +363,13 @@ void search_contacts(void)
         char email[MAX_EMAIL_LEN];
         if (!get_string_prompt("Enter E-mail : ", email, sizeof(email)) || is_whitespace(email))
         {
-            printf("Invalid E-mail Has Been Entered. Returning To Main Menu.\n");  // FIXED: Added newline
+            printf("Invalid E-mail Has Been Entered. Returning To Main Menu.\n"); // FIXED: Added newline
             pause_program(NULL);
             return;
         }
 
-        result = contact_find_by_email(contacts, contact_count, email, found_indices);  // CHANGED: found_count → found_indices
-        
+        result = contact_find_by_email(contacts, contact_count, email, found_indices); // CHANGED: found_count → found_indices
+
         // FIXED: Same logic
         if (result == 0)
         {
@@ -381,15 +382,15 @@ void search_contacts(void)
             break;
         }
 
-        printf("Found %d Contact(s)\n", result);  // FIXED: Added newline
-        printf("Contacts with E-mail : \'%s\':\n", email);  // FIXED: Added newline
+        printf("Found %d Contact(s)\n", result);           // FIXED: Added newline
+        printf("Contacts with E-mail : \'%s\':\n", email); // FIXED: Added newline
         for (int i = 0; i < result; i++)
         {
-            contact_print(&contacts[found_indices[i]]);  // CHANGED: found_count → found_indices
+            contact_print(&contacts[found_indices[i]]); // CHANGED: found_count → found_indices
         }
         break;
     }
-    
+
     case 5: // Quit
         printf("Returning to main menu...\n");
         return;
@@ -400,14 +401,18 @@ void search_contacts(void)
 
 void delete_contact(void)
 {
-    printf("\n=== DELETE CONTACT ===\n");
-
-    // TODO: Show all contacts first (optional)
+    printf("\n=== DELETE CONTACT ===\n"); // Not show all Contacts Because It's Too Much
 
     int id_to_delete;
-    // TODO: Get ID to delete using get_int_prompt()
 
-    int index = find_contact_by_id(id_to_delete);
+    if (!get_int_range_prompt("\nEnter ID To Delete : ", 1, 100, &id_to_delete))
+    {
+        printf("Invalid ID Has Been Entered. Returning To Main Menu.\n");
+        pause_program(NULL);
+        return;
+    }
+
+    int index = contact_find_by_id(contacts, contact_count, id_to_delete);
     if (index == -1)
     {
         printf("Contact with ID %d not found.\n", id_to_delete);
@@ -417,16 +422,43 @@ void delete_contact(void)
 
     // TODO: Show contact details for confirmation
     printf("Delete this contact?\n");
+    contact_print_header(); // For header
     contact_print(&contacts[index]);
+    printf("\n"); // For Spacing    
 
     // TODO: Get confirmation (Y/N) using get_char_prompt()
+    char choice;
+    if (!get_char_prompt("\nAre You Sure? (Y/N) : ", &choice))
+    {
+        printf("Invalid Character Has Been Entered. Directory Is Being Left Unchanged.\nReturning To Main Menu.\n");
+        pause_program(NULL);
+        return;
+    }
 
     // TODO: If confirmed:
     // - Shift all contacts after index left by one
     // - Decrement contact_count
-    // - Show success message
+    if (tolower(choice) == 'y') // ctype.h has BEEN included
+    {
+        if (!contact_remove_by_index(contacts, &contact_count, index))
+        {
+            printf("Failure To Execute. Directory Is Being Left Unchanged.\nReturning To Main Menu.\n");
+            pause_program(NULL);
+            return;
+        }
+        printf("Contact Deletion Executed Successfully.\nTotal Contacts Remaining In Directory : %d\n", contact_count);
+    }
+    else if (tolower(choice) == 'n')
+    {
+        printf("Deletion Cancelled By User. Directory Is Being Left Unchanged.\n");
+    } else {
+        printf("Invalid Character Has Been Entered. Please Enter Only Y/N.\nReturning To Main Menu.\n");
+        pause_program(NULL);        // To keep consistency of same formatting
+        return;
+    }
 
     pause_program("\nPress Enter to return to menu...");
+    return;
 }
 
 void edit_contact(void)
