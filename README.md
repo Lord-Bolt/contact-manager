@@ -15,11 +15,9 @@ User interface driver with full CRUD operations
 
 
 ## ✨ Features
-RFC 5321-compliant email validation - Not just regex, actual spec compliance
+Basic email validation - Checks for @ and . symbol
 
-International phone validation - Supports 20+ country formats
-
-Fuzzy search - Find contacts even with typos
+Phone digit validation - Allows +, spaces, hyphens and parenthesis
 
 Layered architecture - Separation of concerns enforced
 
@@ -47,3 +45,8 @@ v1.2.0: File I/O persistence (JSON/CSV)
 v1.3.0: Database engine prototype
 
 v2.0.0: HTTP server interface
+
+## Future Enhancements Planned
+- RFC 5321-compliant email validation
+- Country-specific phone format validation
+- Unit test suite
