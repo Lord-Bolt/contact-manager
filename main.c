@@ -241,7 +241,7 @@ void list_contacts(void)
             }
             else
             { // No sorting
-                printf("<No Sort>\n`");
+                printf("<No Sort>\n");
             }
         }
     }

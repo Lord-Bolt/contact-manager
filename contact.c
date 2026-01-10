@@ -240,67 +240,57 @@ bool contact_validate_phone(const char *phone)
 }
 
 bool contact_validate_email(const char *email)
-{ // 254 because of RFC rules states that emails can only have max 254 chars
-    if (!email || strlen(email) > 254)
+{
+    if (email == NULL)
         return false;
 
-    // Find @
+    // RFC 5321: max 320 chars total (64 local + 1 @ + 255 domain)
+    size_t len = strlen(email);
+    if (len == 0 || len > 320)
+        return false;
+
+    // Must contain exactly one @
     char *at = strchr(email, '@');
-    // Invalid for - No @, Multiple @, @ at start
-    if (!at || at == email || strchr(at + 1, '@'))
+    if (at == NULL)
         return false;
 
-    // Split into local and domain
-    // before @ -> local part, after @ -> domain
-    size_t local_len = at - email; // pointer arithmetic
-    size_t domain_len = strlen(at + 1);
+    // Check for multiple @
+    if (strchr(at + 1, '@') != NULL)
+        return false;
 
-    // Validate local part (before @)
-    // Rules : Can contain numbers, Letters and spec chars
+    // Extract local part (before @)
+    size_t local_len = at - email;
+    if (local_len == 0 || local_len > 64)
+        return false; // RFC 5321: 64 octets max
+
+    // Extract domain part (after @)
+    size_t domain_len = len - local_len - 1;
+    if (domain_len == 0 || domain_len > 255)
+        return false; // RFC 1035: 255 chars max
+
+    // Basic character validation (simplified for now)
     for (size_t i = 0; i < local_len; i++)
     {
-        unsigned char c = email[i];
-        // Allowed -> 0-9, a-z(both cases), and these spec chars
-        if (!isalnum(c) && strchr(".!#$%&'*+/=?^_`{|}~-", c) == NULL)
-        {
-            return false;
-        }
-        // Additional: Can't start or end with dot, can't have consecutive dots
-        if (c == '.' && (i == 0 || i == local_len - 1 || email[i + 1] == '.'))
+        char c = email[i];
+        if (!isalnum(c) && c != '.' && c != '!' && c != '#' && c != '$' &&
+            c != '%' && c != '&' && c != '\'' && c != '*' && c != '+' &&
+            c != '-' && c != '/' && c != '=' && c != '?' && c != '^' &&
+            c != '_' && c != '`' && c != '{' && c != '|' && c != '}' && c != '~')
         {
             return false;
         }
     }
 
-    // Validate domain part (after @)
-    for (size_t i = 0; i < domain_len; i++)
-    {
-        unsigned char c = at[1 + i]; // at+1 is start of domain
-        if (!isalnum(c) && c != '-' && c != '.')
-        {
-            return false;
-        }
-        // Domain rules: no leading/trailing hyphens or dots
-        if (c == '.' || c == '-')
-        {
-            if (i == 0 || i == domain_len - 1)
-                return false;
-            if (c == '.' && at[1 + i + 1] == '.')
-                return false; // No consecutive dots
-        }
-    }
-
-    // Check TLD
-    char *dot = strrchr(at + 1, '.');
-    if (!dot || dot == at + 1 || strlen(dot + 1) < 2)
+    // Domain validation (simplified)
+    const char *domain = at + 1;
+    if (domain[0] == '.' || domain[domain_len - 1] == '.')
+        return false;
+    if (strstr(domain, "..") != NULL)
         return false;
 
-    // TLD should be letters only (no digits/hyphens)
-    for (int i = 0; dot[i + 1]; i++)
-    {
-        if (!isalpha(dot[i + 1]))
-            return false;
-    }
+    // Must contain at least one dot in domain
+    if (strchr(domain, '.') == NULL)
+        return false;
 
     return true;
 }
