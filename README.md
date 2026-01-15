@@ -50,3 +50,6 @@ v2.0.0: HTTP server interface
 - RFC 5321-compliant email validation
 - Country-specific phone format validation
 - Unit test suite
+
+
+NOTE : THIS IS NOT THE FINAL README, STILL UNDER DEVELOPMENT, CURRENTLY SWITCHING TO DYAMIC FROM STATIC

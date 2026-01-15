@@ -5,7 +5,7 @@
  * RULE: Use input.h for ALL user input!
  ******************************************************************************/
 
-#include "contact.h"
+#include "contact_dynamic.h"
 #include "input.h"
 #include <stdio.h>
 #include <ctype.h>
