@@ -6,8 +6,8 @@
  ******************************************************************************/
 
 // Version 1.0.0
-#ifndef CONTACT_STATIC_H
-#define CONTACT_STATIC_H
+#ifndef CONTACT_DYNAMIC_H
+#define CONTACT_DYNAMIC_H
 
 #include <stdbool.h>
 

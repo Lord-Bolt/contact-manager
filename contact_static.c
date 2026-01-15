@@ -8,7 +8,7 @@
 // Version 1.0.0
 int next_contact_id = 1;
 
-#include "contact.h"
+#include "contact_static.h"
 #include "input.h"
 #include <stdio.h>
 #include <string.h>
