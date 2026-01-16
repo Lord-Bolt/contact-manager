@@ -17,8 +17,7 @@
 // GLOBAL DATA
 // ============================================================================
 
-Contact contacts[MAX_CONTACTS];
-int contact_count = 0;
+ContactList contact_list = {NULL, 0, 0};
 
 // ============================================================================
 // FUNCTION PROTOTYPES
@@ -116,14 +115,6 @@ int main(void)
 // DONE
 void add_contact(void)
 {
-
-    if (contact_count >= MAX_CONTACTS)
-    {
-        printf("Directory is Full. Cannot Add Any More Contacts. Please Delete Contacts If You Wish To Add More.");
-        pause_program("\nPress Enter to return to menu...");
-        return;
-    }
-
     printf("\n=== ADD NEW CONTACT ===\n");
 
     Contact new_contact;
@@ -131,9 +122,7 @@ void add_contact(void)
     char phone[MAX_PHONE_LEN];
     char email[MAX_EMAIL_LEN];
 
-    // TODO: Get name using get_string_prompt()
-    // TODO: Validate with contact_validate_name()
-    // TODO: If invalid, show error and return
+    // Get and validate name
     if (!get_string_prompt("Name : ", name, MAX_NAME_LEN))
     {
         printf("Failed to read Name Entered. Please Try Again.\n");
@@ -149,8 +138,7 @@ void add_contact(void)
         return;
     }
 
-    // TODO: Get phone using get_string_prompt()
-    // TODO: Validate with contact_validate_phone()
+    // Get and validate phone
     if (!get_string_prompt("Phone Number : ", phone, MAX_PHONE_LEN))
     {
         printf("Failed to read Phone Number. Please Try Again\n");
@@ -166,8 +154,7 @@ void add_contact(void)
         return;
     }
 
-    // TODO: Get email using get_string_prompt()
-    // TODO: Validate with contact_validate_email()
+    // Get and validate email
     if (!get_string_prompt("E-mail : ", email, MAX_EMAIL_LEN))
     {
         printf("Failed to read E-mail. Please Try Again.\n");
@@ -183,8 +170,7 @@ void add_contact(void)
         return;
     }
 
-    // TODO: Create contact with contact_create()
-    // TODO: Add to contacts array if successful
+    // Create contact
     bool result = contact_create(&new_contact, name, phone, email);
     if (!result)
     {
@@ -193,32 +179,41 @@ void add_contact(void)
         return;
     }
 
-    // Adding contact
-    contacts[contact_count] = new_contact;
-    contact_count++;
+    // Add to DYNAMIC list
+    if (!contact_list_add(&contact_list, &new_contact))
+    {
+        printf("\nFailed to add contact (memory allocation error).\n");
+        pause_program("\nPress Enter to return to menu...");
+        return;
+    }
+
     printf("\nContact '%s' Added Successfully To Directory.", name);
-    printf("\nCurrent Total Number of Contacts In Directory : %d\n", contact_count);
+    printf("\nCurrent Total Number of Contacts In Directory : %d\n", contact_list.size);
     pause_program("\nPress Enter to return to menu...");
 }
 // DONE
 void list_contacts(void)
 {
     int choice;
-    Contact temp_contacts[MAX_CONTACTS];
-    memcpy(temp_contacts, contacts, sizeof(Contact) * contact_count); // Make Temp Array To Store Contacts
-
-    printf("\n=== ALL CONTACTS (%d) ===\n", contact_count);
-
-    if (contact_count == 0)
+    Contact *temp_contacts = NULL;
+    printf("\n=== ALL CONTACTS (%d) ===\n", contact_list.size);
+    if (contact_list.size <= 0)
     {
         printf("No contacts found.\n");
+        pause_program("\nPress Enter to return to menu...");
+        return;
     }
     else
     {
-        // TODO: Optional - Add sorting choice
-        // printf("Sort by: 1) ID 2) Name\n");
-        // Get choice, sort array (temporarily) if needed
-        if (contact_count > 1)
+        temp_contacts = malloc(contact_list.size * sizeof(Contact));
+        if (temp_contacts == NULL)
+        {
+            printf("Memory error! Cannot create temporary array.\n");
+            pause_program("\nPress Enter to return to menu...");
+            return;
+        }
+        memcpy(temp_contacts, contact_list.data, sizeof(Contact) * contact_list.size);
+        if (contact_list.size > 1)
         {
             printf("1. ID (ascending)\n");
             printf("2. Name (alphabetical)\n");
@@ -231,12 +226,12 @@ void list_contacts(void)
             }
             if (choice == 1)
             { // Sort by ID
-                qsort(temp_contacts, contact_count, sizeof(Contact), contact_compare_id);
+                qsort(temp_contacts, contact_list.size, sizeof(Contact), contact_compare_id);
                 printf("<Sorted by ID>\n");
             }
             else if (choice == 2)
             { // Sort by Name
-                qsort(temp_contacts, contact_count, sizeof(Contact), contact_compare_name);
+                qsort(temp_contacts, contact_list.size, sizeof(Contact), contact_compare_name);
                 printf("<Sorted by Name>\n");
             }
             else
@@ -245,8 +240,9 @@ void list_contacts(void)
             }
         }
     }
-    contact_print_all(temp_contacts, contact_count);
-    printf("\nTotal: %d contact(s)\n", contact_count);
+    contact_print_all(temp_contacts, contact_list.size);
+    printf("\nTotal: %d contact(s)\n", contact_list.size);
+    free(temp_contacts);
     pause_program("\nPress Enter to return to menu...");
     return;
 }

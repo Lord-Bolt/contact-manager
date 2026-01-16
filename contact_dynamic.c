@@ -5,15 +5,134 @@
  * VERSION: 1.0.1
  ******************************************************************************/
 
-// Version 1.0.0
-int next_contact_id = 1;
-
 #include "contact_dynamic.h"
 #include "input.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
+#include <stdlib.h> // For malloc/realloc/free
+
+// ============================================================================
+// GLOBAL VARIABLES - FOR DYNAMIC
+// ============================================================================
+int next_contact_id = 1;
+ContactList contact_list = {NULL, 0, 0};
+
+// ============================================================================
+// DYNAMIC ARRAY IMPLEMENTATION
+// ============================================================================
+bool contact_list_init(ContactList *list, int initial_capacity)
+{
+    if (list == NULL)
+    {
+        return false;
+    }
+
+    if (initial_capacity <= 0)
+    {
+        initial_capacity = 4; // Handle Invalid capacity
+    }
+
+    // Allocate Memory
+    list->data = malloc(initial_capacity * sizeof(Contact));
+    if (list->data == NULL)
+    {
+        return false; // Memory Did Not Initialize
+    }
+
+    list->size = 0;
+    list->capacity = initial_capacity;
+    return true; // Successful
+}
+
+bool contact_list_ensure_capacity(ContactList *list, int min_capacity)
+{
+    if (list == NULL)
+    {
+        return false;
+    }
+
+    // Check for if capacity is already enough -> early return
+    if (min_capacity <= list->capacity)
+    {
+        return true;
+    }
+
+    // calc new capacity -> Atleast Double
+    int new_capacity = list->capacity * 2;
+    if (new_capacity < min_capacity)
+    {
+        new_capacity = min_capacity; // Double ensuring
+    }
+
+    // VERY IMPORTANT -> temp variable for realloc -> prevents mem loss
+    Contact *new_data = realloc(list->data, new_capacity * sizeof(Contact));
+    if (new_data == NULL)
+    {
+        return false; // Fail
+    }
+
+    // Success
+    list->data = new_data;
+    list->capacity = new_capacity;
+    return true;
+}
+
+void contact_list_free(ContactList *list)
+{
+    if (list == NULL)
+    {
+        return;
+    }
+
+    free(list->data);
+    list->data = NULL;
+    list->capacity = 0;
+    list->size = 0;
+}
+
+bool contact_list_add(ContactList *list, const Contact *contact)
+{
+    if (list == NULL || contact == NULL)
+    {
+        return false;
+    }
+
+    if (list->size >= list->capacity)
+    { // Ensuring Enough Size
+        if (!contact_list_ensure_capacity(list, list->capacity + 1))
+        {
+            return false; // Out of Memory -> will cause mem leak if followed through
+        }
+    }
+
+    list->data[list->size] = *contact; // list->size is index
+    list->size++;                      // Index increment
+    return true;                       // Sucess
+}
+
+bool contact_list_remove_by_id(ContactList *list, int id)
+{
+    if (list == NULL)
+    {
+        return false;
+    }
+
+    int index = contact_find_by_id_in_list(list, id);
+    if (index == -1)
+    {
+        return false;
+    }
+
+    // Shift Everything after removed contact by 1
+    for (int i = index; i < list->size - 1; i++)
+    {
+        list->data[i] = list->data[i + 1];
+    }
+
+    list->size--; // Decrement
+    return true;
+}
 
 // ============================================================================
 // CONTACT CREATION - DONE
@@ -153,7 +272,6 @@ bool contact_validate_name(const char *name)
         else if (c == ' ' || c == '-' || c == '.' || c == '\'')
         {
             // Allowed punctuation
-            // Could add more: c == ',' for "Smith, Jr."?
         }
         else
         {
@@ -300,12 +418,9 @@ bool contact_validate_email(const char *email)
 // SEARCH HELPER FUNCTIONS - DONE
 // ============================================================================
 
+// FOR STATIC -> keeping for compatibility
 int contact_find_by_id(const Contact contacts[], int count, int id)
 {
-    // TODO: Loop through contacts
-    // TODO: Compare each contact's id with parameter id
-    // TODO: Return index if found
-    // TODO: Return -1 if not found
     if (contacts == NULL || count < 1)
     {
         return -1;
@@ -324,11 +439,6 @@ int contact_find_by_id(const Contact contacts[], int count, int id)
 
 int contact_find_by_name(const Contact contacts[], int count, const char *name, int results[])
 {
-    // TODO: Initialize found_name_count = 0
-    // TODO: Loop through all contacts
-    // TODO: For each contact, check if name matches (use contact_name_matches)
-    // TODO: If matches, store index in results[found_name_count] and increment
-    // TODO: Return found_count
     int found_name_count = 0;
 
     if (name == NULL || contacts == NULL || results == NULL)
@@ -354,9 +464,6 @@ int contact_find_by_name(const Contact contacts[], int count, const char *name, 
 
 int contact_find_by_phone(const Contact contacts[], int count, const char *phone, int results[])
 {
-    // TODO: Similar to find_by_name but for phone
-    // TODO: Consider normalizing phone numbers first
-    // TODO: Use found_phone_count for comparison
     int found_phone_count = 0;
 
     if (phone == NULL || contacts == NULL || results == NULL)
@@ -381,8 +488,6 @@ int contact_find_by_phone(const Contact contacts[], int count, const char *phone
 
 int contact_find_by_email(const Contact contacts[], int count, const char *email, int results[])
 {
-    // TODO: Similar to find_by_name but for email
-    // TODO: Use contact_email_matches for comparison
     int found_email_count = 0;
 
     if (email == NULL || contacts == NULL || results == NULL)
@@ -398,6 +503,95 @@ int contact_find_by_email(const Contact contacts[], int count, const char *email
     for (int i = 0; i < count; i++)
     {
         if (contact_email_matches(&contacts[i], email))
+        {
+            results[found_email_count++] = i;
+        }
+    }
+
+    return found_email_count;
+}
+
+// FOR DYNAMIC -> New
+int contact_find_by_id_in_list(const ContactList* list, int id)
+{
+    if (list == NULL)
+    {
+        return -1;
+    }
+    for (int i = 0; i < list->size; i++)
+    {
+        if (list->data[i].id == id)
+            return i;
+    }
+    return -1;
+}
+
+int contact_find_by_name_in_list(const ContactList* list, const char *name, int results[])
+{
+    int found_name_count = 0;
+
+    if (name == NULL || list == NULL || results == NULL)
+    {
+        return -1;
+    }
+
+    if (name[0] == '\0') // Must come after NULL check
+    {
+        return 0;
+    }
+
+    for (int i = 0; i < list->size; i++)
+    {
+        if (contact_name_matches(&list->data[i], name))
+        {
+            results[found_name_count++] = i;
+        }
+    }
+
+    return found_name_count;
+}
+
+int contact_find_by_phone_in_list(const ContactList* list, const char *phone, int results[])
+{
+    int found_phone_count = 0;
+
+    if (phone == NULL || list == NULL || results == NULL)
+    {
+        return -1;
+    }
+
+    if (phone[0] == '\0')
+    {
+        return 0;
+    }
+    for (int i = 0; i < list->size; i++)
+    {
+        if (contact_phone_matches(&list->data[i], phone))
+        {
+            results[found_phone_count++] = i;
+        }
+    }
+
+    return found_phone_count;
+}
+
+int contact_find_by_email_in_list(const ContactList* list, const char *email, int results[])
+{
+    int found_email_count = 0;
+
+    if (email == NULL || list == NULL || results == NULL)
+    {
+        return -1;
+    }
+
+    if (email[0] == '\0')
+    {
+        return 0;
+    }
+
+    for (int i = 0; i < list->size; i++)
+    {
+        if (contact_email_matches(&list->data[i], email))
         {
             results[found_email_count++] = i;
         }
