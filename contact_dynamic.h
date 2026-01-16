@@ -59,6 +59,7 @@ void contact_list_free(ContactList *list);
 bool contact_list_add(ContactList *list, const Contact *contact);
 bool contact_list_remove_by_id(ContactList *list, int id);
 bool contact_list_update_by_id(ContactList *list, int id, const Contact *updates);
+bool contact_list_remove_by_index(ContactList *list, int index);
 
 // Search in ContactList (NEW)
 int contact_find_by_id_in_list(const ContactList *list, int id);

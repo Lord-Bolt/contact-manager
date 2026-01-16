@@ -134,6 +134,17 @@ bool contact_list_remove_by_id(ContactList *list, int id)
     return true;
 }
 
+bool contact_list_remove_by_index(ContactList* list, int index) {
+    if (list == NULL || index < 0 || index >= list->size) 
+        return false;
+    
+    for (int i = index; i < list->size - 1; i++) {
+        list->data[i] = list->data[i + 1];
+    }
+    
+    list->size--;
+    return true;
+}
 // ============================================================================
 // CONTACT CREATION - DONE
 // ============================================================================
