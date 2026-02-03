@@ -7,6 +7,7 @@
 
 #include "contact_dynamic.h"
 #include "input.h"
+#include "contact_file.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -52,15 +53,26 @@ int main(void)
         return 1;
     }
 
+    printf("Checking for saved contacts...\n");
+    if (contact_file_validate("contacts.dat"))
+    {
+        char choice;
+        if (get_char_prompt("Found contacts.dat. Load? (Y/N): ", &choice) &&
+            tolower(choice) == 'y')
+        {
+            contact_file_load(&contact_list, "contacts.dat");
+        }
+    }
+
     int choice;
     do
     {
         show_menu();
 
         // Use YOUR library - consistent error handling!
-        if (!get_int_range_prompt("Enter choice (1-8): ", 1, 8, &choice))
+        if (!get_int_range_prompt("Enter choice (1-9): ", 1, 9, &choice))
         {
-            printf("\nInvalid input! Please enter a number 1-8.\n");
+            printf("\nInvalid input! Please enter a number 1-9.\n");
             pause_program("Press Enter to continue...");
             continue;
         }
@@ -82,22 +94,52 @@ int main(void)
         case 5:
             edit_contact();
             break;
-        case 6: // TODO: Save to file
-            printf("Save feature coming soon!\n");
+        case 6:
+            if (contact_file_save(&contact_list, "contacts.dat"))
+            {
+                printf("Contacts saved successfully!\n");
+            }
+            else
+            {
+                printf("Failed to save contacts.\n");
+            }
             pause_program("Press Enter to continue...");
             break;
         case 7:
-            clear_screen();
+            printf("\nWARNING: This will replace ALL current contacts!\n");
+            char confirm;
+            if (get_char_prompt("Continue? (Y/N): ", &confirm) &&
+                tolower(confirm) == 'y')
+            {
+
+                if (contact_file_load(&contact_list, "contacts.dat"))
+                {
+                    printf("Contacts loaded successfully!\n");
+                }
+                else
+                {
+                    printf("Failed to load contacts.\n");
+                }
+            }
+            else
+            {
+                printf("Load cancelled.\n");
+            }
+            pause_program("Press Enter to continue...");
             break;
         case 8:
+            clear_screen();
+            break;
+        case 9:
             printf("\nExiting Contact Manager...\n");
             break;
         default:
             printf("Invalid choice!\n");
+            pause_program("Press Enter to Return to Main Menu...\n");
             break;
         }
 
-    } while (choice != 8);
+    } while (choice != 9);
 
     contact_list_free(&contact_list);
     pause_program("Press Enter to exit completely...");
@@ -316,8 +358,8 @@ void search_contacts(void)
             break;
         }
 
-        printf("Found %d Contact(s)\n", result);        // FIXED: Added newline
-        printf("Contacts with Name : \'%s\':\n", name); // FIXED: Added newline
+        printf("Found %d Contact(s)\n", result);       // FIXED: Added newline
+        printf("Contacts with Name : \'%s\'\n", name); // FIXED: Added newline
         for (int i = 0; i < result; i++)
         {
             contact_print(&contact_list.data[found_indices[i]]); // CHANGED: found_count → found_indices
@@ -611,26 +653,6 @@ void clear_screen(void)
     return;
 }
 
-/*
-// ============================================================================
-// FILE I/O (ADVANCED - OPTIONAL FOR NOW)
-// ============================================================================
-
-void save_contacts_to_file(const char *filename) {
-    // TODO: Open file for writing (binary or text)
-    // TODO: Write contact_count first
-    // TODO: Write each contact
-    // TODO: Handle errors
-}
-
-void load_contacts_from_file(const char *filename) {
-    // TODO: Open file for reading
-    // TODO: Read contact_count
-    // TODO: Read each contact into array
-    // TODO: Update next_contact_id based on loaded data
-    // TODO: Handle errors (file not found, corrupt, etc.)
-}*/
-
 void display_search_results(const Contact contacts[], const int indices[], int count)
 {
     if (count == 0)
@@ -660,7 +682,8 @@ void show_menu(void)
     printf("3. Search Contact\n");
     printf("4. Delete Contact\n");
     printf("5. Edit Contact\n");
-    printf("6. Save to File (Coming Soon)\n");
-    printf("7. Clear Screen (Coming Soon)\n");
-    printf("8. Exit\n");
+    printf("6. Save to File\n");
+    printf("7. Load from File\n");
+    printf("8. Clear Screen (Coming Soon)\n");
+    printf("9. Exit\n");
 }
