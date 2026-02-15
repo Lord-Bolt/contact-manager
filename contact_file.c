@@ -67,7 +67,7 @@ static bool write_contact(FILE *file, const Contact *contact)
     return true;
 } // 323 Bytes - No padding
 
-static uint32_t calculate_packed_checksum(const ContactList *list)
+static uint32_t calculate_packed_checksum_stream(const ContactList *list)
 {
     uint32_t sum1 = 0;
     uint32_t sum2 = 0;
@@ -75,30 +75,12 @@ static uint32_t calculate_packed_checksum(const ContactList *list)
     for (int i = 0; i < list->size; i++)
     {
         const Contact *c = &list->data[i];
-        // Update checksum with name (50 bytes)
-        for (int j = 0; j < MAX_NAME_LEN; j++)
-        {
-            sum1 = (sum1 + (uint8_t)c->name[j]) % 65535;
-            sum2 = (sum2 + sum1) % 65535;
-        }
-        // Update with phone (15 bytes)
-        for (int j = 0; j < MAX_PHONE_LEN; j++)
-        {
-            sum1 = (sum1 + (uint8_t)c->phone[j]) % 65535;
-            sum2 = (sum2 + sum1) % 65535;
-        }
-        // Update with email (254 bytes)
-        for (int j = 0; j < MAX_EMAIL_LEN; j++)
-        {
-            sum1 = (sum1 + (uint8_t)c->email[j]) % 65535;
-            sum2 = (sum2 + sum1) % 65535;
-        }
-        // Update with id (4 bytes as 2×16-bit chunks)
-        uint16_t *id_bytes = (uint16_t *)&c->id;
-        sum1 = (sum1 + id_bytes[0]) % 65535;
-        sum2 = (sum2 + sum1) % 65535;
-        sum1 = (sum1 + id_bytes[1]) % 65535;
-        sum2 = (sum2 + sum1) % 65535;
+
+        // Process in EXACT same order as file write
+        fletcher32_update_stream(&sum1, &sum2, c->name, MAX_NAME_LEN);
+        fletcher32_update_stream(&sum1, &sum2, c->phone, MAX_PHONE_LEN);
+        fletcher32_update_stream(&sum1, &sum2, c->email, MAX_EMAIL_LEN);
+        fletcher32_update_stream(&sum1, &sum2, &c->id, sizeof(int));
     }
 
     return (sum2 << 16) | sum1;
@@ -136,7 +118,7 @@ bool contact_file_save(const ContactList *list, const char *filename)
 
     // === STEP 3: Calculate checksums ===
     // Data checksum (all packed contacts)
-    header.data_checksum = calculate_packed_checksum(list);
+    header.data_checksum = calculate_packed_checksum_stream(list);
     header.header_checksum = fletcher32(
         &header.data_checksum,
         sizeof(ContactFileHeader) - offsetof(ContactFileHeader, data_checksum));
@@ -351,7 +333,7 @@ bool contact_file_load(ContactList *list, const char *filename)
         goto cleanup;
     }
 
-    printf("CHECKSUM VERIFIED: 0x%08X ✓\n", calculated_checksum);
+    printf("CHECKSUM VERIFIED: 0x%08X\n", calculated_checksum);
 
     // Verify header checksum
     uint32_t header_checksum = fletcher32(
