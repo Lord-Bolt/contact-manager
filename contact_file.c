@@ -174,34 +174,6 @@ cleanup:
     return success;
 }
 
-static bool read_contact(FILE *file, Contact *contact)
-{
-    if (fread(contact->name, 1, MAX_NAME_LEN, file) != MAX_NAME_LEN)
-    { // Name - 50 byte
-        return false;
-    }
-    contact->name[MAX_NAME_LEN - 1] = '\0';
-
-    if (fread(contact->phone, 1, MAX_PHONE_LEN, file) != MAX_PHONE_LEN)
-    { // Phone - 15 byte
-        return false;
-    }
-    contact->phone[MAX_PHONE_LEN - 1] = '\0';
-
-    if (fread(contact->name, 1, MAX_EMAIL_LEN, file) != MAX_EMAIL_LEN)
-    { // Email - 254 byte
-        return false;
-    }
-    contact->email[MAX_EMAIL_LEN - 1] = '\0';
-
-    if (fread(&contact->id, sizeof(int), 1, file) != 1)
-    { // ID - 4 byte (usually)
-        return false;
-    }
-
-    return true;
-}
-
 bool contact_file_load(ContactList *list, const char *filename)
 {
     if (list == NULL || filename == NULL)
@@ -296,7 +268,7 @@ bool contact_file_load(ContactList *list, const char *filename)
             printf("LOAD ERROR: Failed to read phone for contact %u\n", i);
             goto cleanup;
         }
-        contact->phone[MAX_NAME_LEN - 1] = '\0';
+        contact->phone[MAX_PHONE_LEN - 1] = '\0';
         fletcher32_update_stream(&checksum_sum1, &checksum_sum2,
                                  contact->phone, MAX_PHONE_LEN);
 
