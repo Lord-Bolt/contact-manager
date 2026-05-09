@@ -186,13 +186,13 @@ static bool read_contact(FILE *file, Contact *contact)
     { // Phone - 15 byte
         return false;
     }
-    contact->name[MAX_PHONE_LEN - 1] = '\0';
+    contact->phone[MAX_PHONE_LEN - 1] = '\0';
 
     if (fread(contact->name, 1, MAX_EMAIL_LEN, file) != MAX_EMAIL_LEN)
     { // Email - 254 byte
         return false;
     }
-    contact->name[MAX_EMAIL_LEN - 1] = '\0';
+    contact->email[MAX_EMAIL_LEN - 1] = '\0';
 
     if (fread(&contact->id, sizeof(int), 1, file) != 1)
     { // ID - 4 byte (usually)
