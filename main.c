@@ -13,6 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <direct.h>
+
+
 
 // ============================================================================
 // GLOBAL DATA
@@ -32,13 +35,10 @@ void delete_contact(void);
 void edit_contact(void);
 
 // Helper functions
-void save_contacts_to_file(const char *filename);
-void load_contacts_from_file(const char *filename);
 void display_search_results(const Contact contacts[], const int indices[], int count);
 
 // UI functions
-void show_menu(void);
-void show_contact_details(int index);
+void show_menu(void);   
 void clear_screen(void);
 
 // ============================================================================
@@ -53,16 +53,26 @@ int main(void)
         return 1;
     }
 
-    printf("Checking for saved contacts...\n");
-    if (contact_file_validate("contacts.dat"))
-    {
-        char choice;
-        if (get_char_prompt("Found contacts.dat. Load? (Y/N): ", &choice) &&
-            tolower(choice) == 'y')
-        {
-            contact_file_load(&contact_list, "contacts.dat");
-        }
+    char cwd[1024];
+    if (_getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf("Current working directory: %s\n", cwd);
     }
+
+   printf("Checking for saved contacts...\n");
+    
+    char ch;
+    if (get_char_prompt("Attempt to load saved contacts? (Y/N): ", &ch) &&
+    tolower(ch) == 'y')
+    {
+        if (contact_file_load_backup(&contact_list))
+        {
+            printf("Contacts loaded successfully!\n");
+        }
+        else
+        {
+            printf("No saved contacts found. Starting fresh`\n");
+        }
+    }   
 
     int choice;
     do
@@ -95,12 +105,9 @@ int main(void)
             edit_contact();
             break;
         case 6:
-            if (contact_file_save(&contact_list, "contacts.dat"))
-            {
-                printf("Contacts saved successfully!\n");
-            }
-            else
-            {
+            if (contact_file_save_backup(&contact_list)) {
+                printf("Contacts saved with backup rotation!\n");
+            } else {
                 printf("Failed to save contacts.\n");
             }
             pause_program("Press Enter to continue...");
@@ -108,17 +115,15 @@ int main(void)
         case 7:
             printf("\nWARNING: This will replace ALL current contacts!\n");
             char confirm;
-            if (get_char_prompt("Continue? (Y/N): ", &confirm) &&
-                tolower(confirm) == 'y')
+            if (get_char_prompt("Continue? (Y/N): ", &confirm) && tolower(confirm) == 'y')
             {
-
-                if (contact_file_load(&contact_list, "contacts.dat"))
+                if (contact_file_load_backup(&contact_list))
                 {
                     printf("Contacts loaded successfully!\n");
                 }
                 else
                 {
-                    printf("Failed to load contacts.\n");
+                    printf("Failed to load contacts from any backup.\n");
                 }
             }
             else

@@ -208,7 +208,7 @@ void contact_print(const Contact *contact)
 void contact_print_header(void)
 {
     printf("\n|------|----------------------|-----------------|--------------------------------|");
-    printf("\n|  ID  |        Name          |     Phone      |            Email              |");
+    printf("\n|  ID  |        Name          |     Phone       |            Email               |");
     printf("\n|------|----------------------|-----------------|--------------------------------|");
 }
 
@@ -423,6 +423,7 @@ bool contact_validate_email(const char *email)
 
     return true;
 }
+
 
 // Version 1.0.1
 // ============================================================================

@@ -33,6 +33,8 @@ uint32_t fletcher32(const void *data, size_t length);
 static void fletcher32_update_stream(uint32_t *sum1, uint32_t *sum2, const void *data, size_t length);
 static bool write_contact(FILE *file, const Contact *contact);
 static uint32_t calculate_packed_checksum_stream(const ContactList *list);
-static bool read_contact(FILE *file, Contact *contact);
 bool contact_file_validate(const char *filename);
+bool rotate_backups(void);
+bool contact_file_save_backup(const ContactList *list);
+bool contact_file_load_backup(ContactList *list);
 #endif

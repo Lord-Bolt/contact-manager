@@ -403,3 +403,61 @@ static void fletcher32_update_stream(uint32_t *sum1, uint32_t *sum2, const void 
         *sum2 = (*sum2 + *sum1) % 65535;
     }
 }
+
+bool rotate_backups(void){
+    printf("--- rotate_backups called ---\n");
+    FILE* fp;
+    fp = fopen("contacts.dat.bak3", "rb");
+    if (fp != NULL){
+        fclose(fp);
+        remove("contacts.dat.bak3");
+    }
+    
+    fp = fopen("contacts.dat.bak2", "rb");
+    if (fp != NULL){
+        fclose(fp);
+        rename("contacts.dat.bak2","contacts.dat.bak3");
+    }
+
+    fp = fopen("contacts.dat.bak1", "rb");
+    if(fp != NULL){
+        fclose(fp);
+        rename("contacts.dat.bak1","contacts.dat.bak2");
+    }
+
+    fp = fopen("contacts.dat", "rb");
+    if (fp != NULL){
+        fclose(fp);
+        rename("contacts.dat","contacts.dat.bak1");
+    }
+    fp = NULL;
+    return true;
+}
+
+
+
+bool contact_file_load_backup(ContactList *list)
+{
+    const char *files[] = {
+        "contacts.dat",
+        "contacts.dat.bak1",
+        "contacts.dat.bak2",
+        "contacts.dat.bak3"
+    };
+
+    for (int i = 0; i < 4; i++) {
+        if (contact_file_load(list, files[i])) {
+            printf("Successfully loaded from %s\n", files[i]);
+            return true;
+        }
+    }
+
+    printf("All backups exhausted. No valid contacts file found.\n");
+    return false;
+}
+
+bool contact_file_save_backup(const ContactList *list)
+{
+    rotate_backups();
+    return contact_file_save(list, "contacts.dat");
+}
