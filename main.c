@@ -14,8 +14,18 @@
 #include <string.h>
 #include <stdbool.h>
 #include <direct.h>
+#include <windows.h>
+#include "contact_storage.h"
 
+static bool g_use_database = false;
 
+int main(int argc, char **argv);
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev,
+                   LPSTR lpCmdLine, int nCmdShow)
+{
+    return main(__argc, __argv);
+}
 
 // ============================================================================
 // GLOBAL DATA
@@ -38,14 +48,14 @@ void edit_contact(void);
 void display_search_results(const Contact contacts[], const int indices[], int count);
 
 // UI functions
-void show_menu(void);   
+void show_menu(void);
 void clear_screen(void);
 
 // ============================================================================
 // MAIN FUNCTION
 // ============================================================================
 
-int main(void)
+int main(int argc, char **argv)
 {
     if (!contact_list_init(&contact_list, 10)) // 10 as starting limit
     {
@@ -54,26 +64,69 @@ int main(void)
     }
 
     char cwd[1024];
-    if (_getcwd(cwd, sizeof(cwd)) != NULL) {
+    if (_getcwd(cwd, sizeof(cwd)) != NULL)
+    {
         printf("Current working directory: %s\n", cwd);
     }
 
-   printf("Checking for saved contacts...\n");
-    
-    char ch;
-    if (get_char_prompt("Attempt to load saved contacts? (Y/N): ", &ch) &&
-    tolower(ch) == 'y')
+    // Try to initialize the SQLite database
+    if (storage_init() == 0)
     {
-        if (contact_file_load_backup(&contact_list))
+        g_use_database = true;
+    }
+    else
+    {
+        g_use_database = false;
+    }
+
+    // Load contacts
+    if (g_use_database)
+    {
+        int count = storage_load_all(&contact_list);
+        if (count >= 0)
         {
-            printf("Contacts loaded successfully!\n");
+            printf("Loaded %d contacts from database.\n", count);
         }
         else
         {
-            printf("No saved contacts found. Starting fresh`\n");
+            printf("Failed to load from database.\n");
         }
-    }   
 
+        // If database loaded zero contacts, offer to import legacy
+        if (contact_list.size == 0)
+        {
+            char ch;
+            if (get_char_prompt("Database is empty. Attempt to load from legacy file? (Y/N): ", &ch) &&
+                tolower(ch) == 'y')
+            {
+                if (contact_file_load_backup(&contact_list))
+                {
+                    printf("Legacy contacts imported successfully!\n");
+                }
+                else
+                {
+                    printf("No legacy contacts found.\n");
+                }
+            }
+        }
+    }
+    else
+    {
+        // Legacy load – your existing prompt
+        char ch;
+        if (get_char_prompt("Attempt to load saved contacts? (Y/N): ", &ch) &&
+            tolower(ch) == 'y')
+        {
+            if (contact_file_load_backup(&contact_list))
+            {
+                printf("Contacts loaded successfully!\n");
+            }
+            else
+            {
+                printf("No saved contacts found. Starting fresh.\n");
+            }
+        }
+    }
     int choice;
     do
     {
@@ -105,30 +158,62 @@ int main(void)
             edit_contact();
             break;
         case 6:
-            if (contact_file_save_backup(&contact_list)) {
-                printf("Contacts saved with backup rotation!\n");
-            } else {
-                printf("Failed to save contacts.\n");
+            // Always save to legacy backup
+            bool legacy_ok = contact_file_save_backup(&contact_list);
+
+            // If SQLite is active, also save to the database
+            bool db_ok = true; // assume ok if not using database
+            if (g_use_database)
+            {
+                int saved = storage_save_all(&contact_list);
+                db_ok = (saved >= 0);
+            }
+
+            if (legacy_ok && db_ok)
+            {
+                printf("Contacts saved successfully.\n");
+            }
+            else
+            {
+                if (!legacy_ok)
+                    printf("Failed to save to legacy file.\n");
+                if (!db_ok)
+                    printf("Failed to save to database.\n");
             }
             pause_program("Press Enter to continue...");
             break;
         case 7:
-            printf("\nWARNING: This will replace ALL current contacts!\n");
-            char confirm;
-            if (get_char_prompt("Continue? (Y/N): ", &confirm) && tolower(confirm) == 'y')
+            printf("\nReloading contacts...\n");
+            contact_list_free(&contact_list);
+            contact_list_init(&contact_list, 10);
+
+            bool loaded = false;
+            if (g_use_database)
             {
-                if (contact_file_load_backup(&contact_list))
+                int count = storage_load_all(&contact_list);
+                if (count >= 0)
                 {
-                    printf("Contacts loaded successfully!\n");
+                    printf("Loaded %d contacts from database.\n", count);
+                    loaded = true;
                 }
                 else
                 {
-                    printf("Failed to load contacts from any backup.\n");
+                    printf("Failed to load from database.\n");
                 }
             }
-            else
+
+            if (!loaded)
             {
-                printf("Load cancelled.\n");
+                // Fallback to legacy
+                if (contact_file_load_backup(&contact_list))
+                {
+                    printf("Loaded contacts from legacy backup.\n");
+                    loaded = true;
+                }
+                else
+                {
+                    printf("No contacts found (database or legacy). Starting fresh.\n");
+                }
             }
             pause_program("Press Enter to continue...");
             break;
@@ -650,12 +735,14 @@ void edit_contact(void)
 
 void clear_screen(void)
 {
-    // TODO: Platform-specific screen clear
-    // Windows: system("cls");
-    // Linux/Mac: system("clear");
-    // Or print many newlines as fallback
-    printf("Clear Screen Not Implemented Yet - Upcoming In New Version");
-    return;
+#ifdef _WIN32
+    system("cls");
+#elif defined(__linux__) || defined(__APPLE__)
+    system("clear");
+#else
+    for (int i = 0; i < 50; i++)
+        putchar('\n');
+#endif
 }
 
 void display_search_results(const Contact contacts[], const int indices[], int count)
@@ -689,6 +776,6 @@ void show_menu(void)
     printf("5. Edit Contact\n");
     printf("6. Save to File\n");
     printf("7. Load from File\n");
-    printf("8. Clear Screen (Coming Soon)\n");
+    printf("8. Clear Screen\n");
     printf("9. Exit\n");
 }
