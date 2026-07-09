@@ -133,8 +133,14 @@ The build currently produces several harmless compiler warnings:
     Some checks in contact_storage.c that compare array addresses against NULL are logically unnecessary (arrays can never be NULL). These will be simplified.
 
 All warnings have been reviewed and are considered benign. The program operates correctly and has been tested on Windows with MinGW‑w64.
-License
 
-This project currently does not have an open‑source license. You may use the code for personal study. A proper license will be added in a future update.
+## License
 
-Built by Lord Bolt.
+This project is distributed under the **GNU General Public License v3.0**.
+
+See the [LICENSE](LICENSE) file for the full text.
+
+**SPDX-License-Identifier:** GPL-3.0-only
+
+
+*Made with ❤️ and a lot of C by [Lord-Bolt](https://github.com/Lord-Bolt)*
